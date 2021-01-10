@@ -1,0 +1,30 @@
+server:
+  http_listen_port: 9070
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/promtail/positions_c.yaml
+
+clients:
+  - url: http://localhost:3100/loki/api/v1/push
+
+scrape_configs:
+- job_name: forward
+  forward:
+    client:
+      host: localhost
+      port: 9081
+      reconnect_interval: 10s
+      tls_config:
+        cert_file: /tmp/promtail/auth.crt
+        key_file: /tmp/promtail/auth.key
+#    labels:
+#      job: varlogs
+      
+# - job_name: system
+#  static_configs:
+#  - targets:
+      #- localhost
+#    labels:
+#      job: varlogs
+#      __path__: /var/log/*log
