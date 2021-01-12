@@ -1,4 +1,6 @@
 @echo off
+SETLOCAL
+
 set GO111MODULE=on
 set PWD=%~dp0
 for /F "tokens=1 delims= " %%i in ('echo %PWD:\go\src=\go \src%') do (set GOPATH=%%i)
@@ -7,13 +9,14 @@ for /F "tokens=* delims= " %%i in ('git rev-parse --short HEAD') do (set GIT_REV
 for /F "tokens=* delims= " %%i in ('git rev-parse --abbrev-ref HEAD') do (set GIT_BRANCH=%%i)
 for /F "tokens=* delims= " %%i in ('git diff --quiet') do (set WIP=%%i)
 for /F "tokens=* delims= " %%i in ('git describe --exact-match') do (set TAG=%%i)
-for /F "tokens=* delims= " %%i in ('echo %TAG:v=%') do (set TAG=%%i)
 
 if "%WIP%" == "" set WIP=WIP
 if "%TAG%" == "" (
 set IMAGE_TAG=%GIT_BRANCH%-%GIT_REVISION%-%WIP%
 goto Next
 )
+
+for /F "tokens=* delims= " %%i in ('echo %TAG:v=%') do (set TAG=%%i)
 set IMAGE_TAG=%TAG%
 
 :Next
@@ -26,4 +29,6 @@ set DEBUG_GO_FLAGS=-gcflags "all=-N -l" -ldflags "-extldflags \"-static\" %GO_LD
 go generate -x -v ./pkg/promtail/server/ui
 go build %GO_FLAGS% -o ./dist/promtail/promtail.exe ./cmd/promtail
 go build %DEBUG_GO_FLAGS% -o ./dist/promtail/promtail_debug.exe ./cmd/promtail
+
+ENDLOCAL
 @echo on
