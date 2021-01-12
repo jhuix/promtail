@@ -224,6 +224,7 @@ func (s *Server) Start() error {
 					}
 
 					if s.cfg.ForwardConnLimit > 0 && len(s.activeConn) >= s.cfg.ForwardConnLimit {
+						level.Warn(s.logger).Log("msg", fmt.Sprintf("connection (%s) rejected because forward server limit connections is %d", item.conn.RemoteAddr().String(), s.cfg.ForwardConnLimit))
 						_ = item.conn.Close()
 						continue
 					}

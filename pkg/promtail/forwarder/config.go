@@ -22,7 +22,7 @@ type ServerConfig struct {
 func (cfg *ServerConfig) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.StringVar(&cfg.ForwardListenAddress, prefix+"forwarder.listen-address", "", "Forward server listen address.")
 	f.IntVar(&cfg.ForwardListenPort, prefix+"forwarder.listen-port", 9081, "Forward server listen port.")
-	f.IntVar(&cfg.ForwardConnLimit, prefix+"forwarder.conn-limit", 0, "Maximum number of simultaneous forward connections, <=0 to disable")
+	f.IntVar(&cfg.ForwardConnLimit, prefix+"forwarder.conn-limit", 1, "Maximum number of simultaneous forward connections, <=0 to disable")
 	f.DurationVar(&cfg.ForwardServerReadTimeout, prefix+"forwarder.read-timeout", 30*time.Second, "Read timeout for forward server")
 	f.DurationVar(&cfg.ForwardServerWriteTimeout, prefix+"forwarder.write-timeout", 30*time.Second, "Write timeout for forward server")
 	f.DurationVar(&cfg.ForwardKeepalivePeriod, prefix+"forwarder.keepalive.period", time.Minute*3, "Duration after which a keepalive probe is sent in case of no activity over the connection., Default: 3m")

@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/sources/logo.png" alt="Promtail Logo"></p>
 
-# Promtail: promtail for loki
+# Promtail: reserve forward promtail for loki
 
 `promtail` is the agent based on [loki promtail](https://github.com/grafana/loki.git) with reserve forward server and client, responsible for gathering logs and sending them to Loki.
 
@@ -20,14 +20,14 @@ With Journal support on Ubuntu, run with the following commands:
 
 ```bash
 $ sudo apt install -y libsystemd-dev
-$ go build ./cmd/promtail
+$ CGO_ENABLED=1 go build ./cmd/promtail
 ```
 
 With Journal support on CentOS, run with the following commands:
 
 ```bash
 $ sudo yum install -y systemd-devel
-$ go build ./cmd/promtail
+$ CGO_ENABLED=1 go build ./cmd/promtail
 ```
 
 Otherwise, to build Promtail without Journal support, run `go build`
