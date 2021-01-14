@@ -115,7 +115,7 @@ func (t *ForwardTarget) handle() {
 		}
 
 		if lastErr != nil {
-			level.Warn(t.logger).Log("msg", "at least one entry in the push request failed to process", "err", lastErr.Error())
+			level.Warn(t.logger).Log("msg", "at least one entry in the forward request failed to process", "err", lastErr.Error())
 			return
 		}
 	}
@@ -150,7 +150,7 @@ func (t *ForwardTarget) Details() interface{} {
 
 // Stop shuts down the ForwardTarget.
 func (t *ForwardTarget) Stop() error {
-	level.Info(t.logger).Log("msg", "stopping push server", "job", t.jobName)
+	level.Info(t.logger).Log("msg", "stopping forward target", "job", t.jobName)
 	t.once.Do(func() { close(t.logChan) })
 	t.wg.Wait()
 	t.client.Stop()

@@ -73,7 +73,7 @@ func validateJobName(scrapeConfigs []scrapeconfig.Config) error {
 	return nil
 }
 
-// Ready returns true if at least one PushTarget is also ready.
+// Ready returns true if at least one ForwardTarget is also ready.
 func (tm *ForwardTargetManager) Ready() bool {
 	for _, t := range tm.targets {
 		if t.Ready() {
@@ -83,23 +83,23 @@ func (tm *ForwardTargetManager) Ready() bool {
 	return false
 }
 
-// Stop stops the ForwardTargetManager and all of its PushTargets.
+// Stop stops the ForwardTargetManager and all of its ForwardTargets.
 func (tm *ForwardTargetManager) Stop() {
 	for _, t := range tm.targets {
 		if err := t.Stop(); err != nil {
-			level.Error(t.logger).Log("msg", "error stopping PushTarget", "err", err.Error())
+			level.Error(t.logger).Log("msg", "error stopping ForwardTarget", "err", err.Error())
 		}
 	}
 }
 
-// ActiveTargets returns the list of PushTargets where Push data
+// ActiveTargets returns the list of ForwardTargets where Forward data
 // is being read. ActiveTargets is an alias to AllTargets as
-// PushTargets cannot be deactivated, only stopped.
+// ForwardTargets cannot be deactivated, only stopped.
 func (tm *ForwardTargetManager) ActiveTargets() map[string][]target.Target {
 	return tm.AllTargets()
 }
 
-// AllTargets returns the list of all targets where Push data
+// AllTargets returns the list of all targets where forward data
 // is currently being read.
 func (tm *ForwardTargetManager) AllTargets() map[string][]target.Target {
 	result := make(map[string][]target.Target, len(tm.targets))

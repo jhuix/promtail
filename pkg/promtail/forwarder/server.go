@@ -166,6 +166,12 @@ func (s *Server) serverListen() error {
 			}
 			backoff.Reset()
 
+			if s.cfg.ForwardConnLimit > 0 && len(s.activeConn) >= s.cfg.ForwardConnLimit {
+				level.Warn(s.logger).Log("msg", fmt.Sprintf("connection (%s) rejected because forward server limit connections is %d", conn.RemoteAddr().String(), s.cfg.ForwardConnLimit))
+				_ = conn.Close()
+				continue
+			}
+
 			if tc, ok := conn.(*net.TCPConn); ok {
 				_ = tc.SetKeepAlive(true)
 				_ = tc.SetKeepAlivePeriod(s.cfg.ForwardKeepalivePeriod)
@@ -223,12 +229,6 @@ func (s *Server) Start() error {
 						continue
 					}
 
-					if s.cfg.ForwardConnLimit > 0 && len(s.activeConn) >= s.cfg.ForwardConnLimit {
-						level.Warn(s.logger).Log("msg", fmt.Sprintf("connection (%s) rejected because forward server limit connections is %d", item.conn.RemoteAddr().String(), s.cfg.ForwardConnLimit))
-						_ = item.conn.Close()
-						continue
-					}
-
 					s.activeConn[item.conn] = struct{}{}
 					item.conn.Start()
 				}
@@ -257,11 +257,6 @@ func (s *Server) Start() error {
 
 				if item.closed {
 					delete(s.activeConn, item.conn)
-					continue
-				}
-
-				if s.cfg.ForwardConnLimit > 0 && len(s.activeConn) >= s.cfg.ForwardConnLimit {
-					_ = item.conn.Close()
 					continue
 				}
 

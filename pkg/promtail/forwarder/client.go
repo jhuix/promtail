@@ -34,9 +34,8 @@ type ClientConfig struct {
 	IdleTimeout       time.Duration `yaml:"idle_timeout"`
 	KeepalivePeriod   time.Duration `yaml:"keepalive_period"` // If it is zero we don't set keepalive
 	HeartbeatInterval time.Duration `yaml:"heart_interval"`
-	ReconnectInterval time.Duration `yaml:"reconnect_interval"` // If it is zero we don't reconnect
-	// TLSConfig to use to connect to the targets.
-	TLSConfig TLSConfig `yaml:"tls_config,omitempty"`
+	ReconnectInterval time.Duration `yaml:"reconnect_interval"`   // If it is zero we don't reconnect
+	TLSConfig         TLSConfig     `yaml:"tls_config,omitempty"` // TLSConfig to use to connect to the targets.
 }
 
 type Client struct {
@@ -99,13 +98,13 @@ func (c *Client) TlsConnect() error {
 		return err
 	}
 	c.conn = net.Conn(tlsConn)
-	//var conn net.Conn
-	//conn, err = net.DialTimeout("tcp", address, c.cfg.ConnectTimeout)
-	//if err != nil {
-	//	return err
-	//}
+	// var conn net.Conn
+	// conn, err = net.DialTimeout("tcp", address, c.cfg.ConnectTimeout)
+	// if err != nil {
+	// 	return err
+	// }
 	//
-	//c.conn = tls.Client(conn, conf)
+	// c.conn = tls.Client(conn, conf)
 	return nil
 }
 

@@ -22,9 +22,6 @@ import (
 type ConnConfig struct {
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
-	// The tenant ID to use when pushing logs to Loki (empty string means
-	// single tenant mode)
-	TenantID string `yaml:"tenant_id"`
 }
 
 type Conn struct {
@@ -150,7 +147,6 @@ func (c *Conn) createPushRequest(entry api.Entry) (*logproto.PushRequest, int) {
 	req := logproto.PushRequest{
 		Streams: make([]logproto.Stream, 0, 1),
 	}
-
 	stream := &logproto.Stream{
 		Labels:  entry.Labels.String(),
 		Entries: []logproto.Entry{entry.Entry},
