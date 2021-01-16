@@ -43,12 +43,6 @@ type Server struct {
 func New(logger log.Logger, cfg ServerConfig) (*Server, error) {
 	address := fmt.Sprintf("%v:%v", cfg.ForwardListenAddress, cfg.ForwardListenPort)
 	ctx, cancel := context.WithCancel(context.Background())
-	if cfg.ForwardClientConfig.ReadTimeout == 0 {
-		cfg.ForwardClientConfig.ReadTimeout = cfg.ForwardServerReadTimeout
-	}
-	if cfg.ForwardClientConfig.WriteTimeout == 0 {
-		cfg.ForwardClientConfig.WriteTimeout = cfg.ForwardServerWriteTimeout
-	}
 	srv := &Server{
 		logger:     log.With(logger, "component", "forwarder", "host", address),
 		cfg:        cfg,
@@ -180,11 +174,11 @@ func (s *Server) serverListen() error {
 
 			go func() {
 				if tlsConn, ok := conn.(*tls.Conn); ok {
-					if s.cfg.ForwardClientConfig.ReadTimeout != 0 {
-						_ = conn.SetReadDeadline(time.Now().Add(s.cfg.ForwardClientConfig.ReadTimeout))
+					if s.cfg.ForwardReadTimeout != 0 {
+						_ = conn.SetReadDeadline(time.Now().Add(s.cfg.ForwardReadTimeout))
 					}
-					if s.cfg.ForwardClientConfig.WriteTimeout != 0 {
-						_ = conn.SetWriteDeadline(time.Now().Add(s.cfg.ForwardClientConfig.WriteTimeout))
+					if s.cfg.ForwardWriteTimeout != 0 {
+						_ = conn.SetWriteDeadline(time.Now().Add(s.cfg.ForwardWriteTimeout))
 					}
 					if err := tlsConn.Handshake(); err != nil {
 						level.Error(s.logger).Log("msg", fmt.Sprintf("TLS handshake error from %s", conn.RemoteAddr()), "error", err)
@@ -194,7 +188,10 @@ func (s *Server) serverListen() error {
 				}
 
 				s.connChan <- EntryItem{
-					conn:   NewConn(s.cfg.ForwardClientConfig, s.logger, conn, s.handleCloseConnection),
+					conn: NewConn(ConnConfig{
+						s.cfg.ForwardReadTimeout,
+						s.cfg.ForwardWriteTimeout,
+					}, s.logger, conn, s.handleCloseConnection),
 					closed: false,
 				}
 			}()

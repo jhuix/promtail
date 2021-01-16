@@ -13,7 +13,6 @@ type ServerConfig struct {
 	ForwardWriteTimeout     time.Duration `yaml:"write_timeout"`
 	ForwardKeepalivePeriod  time.Duration `yaml:"keepalive_period"`
 	ForwardKeepaliveTimeout time.Duration `yaml:"keepalive_timeout"`
-	ForwardClientConfig     ConnConfig    `yaml:"conn_config,omitempty"`
 	ForwardTLSConfig        TLSConfig     `yaml:"tls_config,omitempty"`
 }
 
