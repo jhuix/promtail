@@ -10,8 +10,9 @@ import (
 var ErrParseRootCertFailed = errors.New("failed to parse root certificate")
 
 type TLSConfig struct {
-	TLSCertPath string `yaml:"cert_file"`
-	TLSKeyPath  string `yaml:"key_file"`
+	InsecureSkipVerify bool   `yaml:"insecure_skip_verify"`
+	TLSCertPath        string `yaml:"cert_file"`
+	TLSKeyPath         string `yaml:"key_file"`
 	//	ClientAuth  string `yaml:"client_auth_type"`
 	//	ClientCAs   string `yaml:"client_ca_file"`
 }
@@ -26,7 +27,7 @@ func tlsBytes(cert, key string) (certBytes, keyBytes []byte, err error) {
 	return
 }
 
-func getClientTlsConfig(certBytes, keyBytes []byte) (conf *tls.Config, err error) {
+func getClientTlsConfig(certBytes, keyBytes []byte, insecureSkipVerify bool) (conf *tls.Config, err error) {
 	var cert tls.Certificate
 	cert, err = tls.X509KeyPair(certBytes, keyBytes)
 	if err != nil {
@@ -41,7 +42,7 @@ func getClientTlsConfig(certBytes, keyBytes []byte) (conf *tls.Config, err error
 		RootCAs:            serverCertPool,
 		ServerName:         "promtail",
 		Certificates:       []tls.Certificate{cert},
-		InsecureSkipVerify: true,
+		InsecureSkipVerify: insecureSkipVerify,
 	}
 	return
 }

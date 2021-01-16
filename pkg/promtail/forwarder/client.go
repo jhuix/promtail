@@ -83,7 +83,7 @@ func (c *Client) TlsConnect() error {
 	}
 
 	var conf *tls.Config
-	conf, err = getClientTlsConfig(certBytes, keyBytes)
+	conf, err = getClientTlsConfig(certBytes, keyBytes, c.cfg.TLSConfig.InsecureSkipVerify)
 	if err != nil {
 		return err
 	}

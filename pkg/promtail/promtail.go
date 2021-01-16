@@ -9,7 +9,6 @@ import (
 
 	"github.com/grafana/loki/pkg/promtail/client"
 	"github.com/grafana/loki/pkg/promtail/config"
-	"github.com/grafana/loki/pkg/promtail/forwarder"
 	"github.com/grafana/loki/pkg/promtail/server"
 	"github.com/grafana/loki/pkg/promtail/targets"
 )
@@ -60,7 +59,6 @@ func New(cfg config.Config, dryRun bool, opts ...Option) (*Promtail, error) {
 		// if a single client config is used we add it to the multiple client config for backward compatibility
 		cfg.ClientConfigs = append(cfg.ClientConfigs, cfg.ClientConfig)
 	}
-
 	// This is a bit crude but if the Loki Push API target is specified,
 	// force the log level to match the promtail log level
 	for i := range cfg.ScrapeConfig {
@@ -70,20 +68,25 @@ func New(cfg config.Config, dryRun bool, opts ...Option) (*Promtail, error) {
 		}
 	}
 
+	clientConfigs := make([]interface{}, 0)
+	for _, cfg := range cfg.ClientConfigs {
+		clientConfigs = append(clientConfigs, &cfg)
+	}
+	if cfg.ForwardConfig.ForwardListenPort > 0 {
+		clientConfigs = append(clientConfigs, &cfg.ForwardConfig)
+	}
+
 	var err error
 	if dryRun {
-		promtail.client, err = client.NewLogger(promtail.logger, cfg.ClientConfig.ExternalLabels, cfg.ClientConfigs...)
+		promtail.client, err = client.NewLogger(promtail.logger, cfg.ClientConfig.ExternalLabels, clientConfigs...)
 		if err != nil {
 			return nil, err
 		}
 		cfg.PositionsConfig.ReadOnly = true
 	} else {
-		promtail.client, err = client.NewMulti(promtail.logger, cfg.ClientConfig.ExternalLabels, cfg.ClientConfigs...)
+		promtail.client, err = client.NewMulti(promtail.logger, cfg.ClientConfig.ExternalLabels, clientConfigs...)
 		if err != nil {
-			promtail.client, err = forwarder.New(promtail.logger, cfg.ForwardConfig)
-			if err != nil {
-				return nil, err
-			}
+			return nil, err
 		}
 	}
 

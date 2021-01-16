@@ -36,7 +36,7 @@ type logger struct {
 }
 
 // NewLogger creates a new client logger that logs entries instead of sending them.
-func NewLogger(log log.Logger, externalLabels lokiflag.LabelSet, cfgs ...Config) (Client, error) {
+func NewLogger(log log.Logger, externalLabels lokiflag.LabelSet, cfgs ...interface{}) (Client, error) {
 	// make sure the clients config is valid
 	c, err := NewMulti(log, externalLabels, cfgs...)
 	if err != nil {

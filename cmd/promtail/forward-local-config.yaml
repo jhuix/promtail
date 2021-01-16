@@ -16,6 +16,7 @@ scrape_configs:
       port: 9081
       reconnect_interval: 10s
 #      tls_config:
+#        insecure_skip_verify: true
 #        cert_file: /tmp/promtail/forward.crt
 #        key_file: /tmp/promtail/forward.key
 #    labels:

@@ -6,14 +6,13 @@ import (
 )
 
 type ServerConfig struct {
-	ForwardListenAddress    string        `yaml:"listen_address"`
-	ForwardListenPort       int           `yaml:"listen_port"`
-	ForwardConnLimit        int           `yaml:"listen_conn_limit"`
-	ForwardReadTimeout      time.Duration `yaml:"read_timeout"`
-	ForwardWriteTimeout     time.Duration `yaml:"write_timeout"`
-	ForwardKeepalivePeriod  time.Duration `yaml:"keepalive_period"`
-	ForwardKeepaliveTimeout time.Duration `yaml:"keepalive_timeout"`
-	ForwardTLSConfig        TLSConfig     `yaml:"tls_config,omitempty"`
+	ForwardListenAddress   string        `yaml:"listen_address"`
+	ForwardListenPort      int           `yaml:"listen_port"`
+	ForwardConnLimit       int           `yaml:"listen_conn_limit"`
+	ForwardReadTimeout     time.Duration `yaml:"read_timeout"`
+	ForwardWriteTimeout    time.Duration `yaml:"write_timeout"`
+	ForwardKeepalivePeriod time.Duration `yaml:"keepalive_period"`
+	ForwardTLSConfig       TLSConfig     `yaml:"tls_config,omitempty"`
 }
 
 // RegisterFlagsWithPrefix with prefix registers flags where every name is prefixed by
@@ -25,7 +24,6 @@ func (cfg *ServerConfig) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet)
 	f.DurationVar(&cfg.ForwardReadTimeout, prefix+"forwarder.read-timeout", 30*time.Second, "Read timeout for forward server")
 	f.DurationVar(&cfg.ForwardWriteTimeout, prefix+"forwarder.write-timeout", 30*time.Second, "Write timeout for forward server")
 	f.DurationVar(&cfg.ForwardKeepalivePeriod, prefix+"forwarder.keepalive.period", time.Minute*3, "Duration after which a keepalive probe is sent in case of no activity over the connection., Default: 3m")
-	f.DurationVar(&cfg.ForwardKeepaliveTimeout, prefix+"forwarder.keepalive.timeout", time.Second*20, "After having pinged for keepalive check, the duration after which an idle connection should be closed, Default: 20s")
 	f.StringVar(&cfg.ForwardTLSConfig.TLSCertPath, prefix+"forwarder.tls-cert-path", "", "Forward TLS server cert path.")
 	f.StringVar(&cfg.ForwardTLSConfig.TLSKeyPath, prefix+"forwarder.tls-key-path", "", "Forward TLS server key path.")
 }
