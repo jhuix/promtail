@@ -7,8 +7,8 @@ import (
 	"github.com/go-kit/kit/log"
 
 	"github.com/grafana/loki/pkg/promtail/api"
+	"github.com/grafana/loki/pkg/promtail/forwarder"
 	"github.com/grafana/loki/pkg/util/flagext"
-	"github.com/jhuix/promtail/pkg/promtail/forwarder"
 )
 
 // MultiClient is client pushing to one or more loki instances.
@@ -26,8 +26,8 @@ func NewMulti(logger log.Logger, externalLabels flagext.LabelSet, cfgs ...interf
 		return nil, errors.New("at least one client config should be provided")
 	}
 	clients := make([]Client, 0, len(cfgs))
-	for _, cfg := range cfgs {
-		switch cfg := cfg.(type) {
+	for _, v := range cfgs {
+		switch cfg := v.(type) {
 		case Config:
 			// Merge the provided external labels from the single client config/command line with each client config from
 			// `clients`. This is done to allow --client.external-labels=key=value passed at command line to apply to all clients

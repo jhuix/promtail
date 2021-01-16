@@ -18,7 +18,7 @@ import (
 )
 
 func TestNewMulti(t *testing.T) {
-	_, err := NewMulti(util.Logger, lokiflag.LabelSet{}, []Config{}...)
+	_, err := NewMulti(util.Logger, lokiflag.LabelSet{}, []interface{}{}...)
 	if err == nil {
 		t.Fatal("expected err but got nil")
 	}

@@ -45,7 +45,8 @@ type Client struct {
 	handleServerRequest func(req *logproto.PushRequest)
 	wg                  sync.WaitGroup
 	mu                  sync.Mutex // protects following
-	shutdown            bool
+	shutdown, stopping  bool
+	done                chan struct{}
 }
 
 func NewClient(logger log.Logger, cfg ClientConfig, handler func(req *logproto.PushRequest)) *Client {
@@ -65,6 +66,7 @@ func NewClient(logger log.Logger, cfg ClientConfig, handler func(req *logproto.P
 		logger:              log.With(logger, "component", "forward", "host", fmt.Sprintf("%v:%v", cfg.Host, cfg.Port)),
 		cfg:                 cfg,
 		handleServerRequest: handler,
+		done:                make(chan struct{}, 1),
 	}
 	return clt
 }
@@ -74,6 +76,13 @@ func (c *Client) IsShutdown() bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.shutdown
+}
+
+// IsStopping client is stopping or not.
+func (c *Client) IsStopping() bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.stopping
 }
 
 func (c *Client) TlsConnect() error {
@@ -124,8 +133,11 @@ func (c *Client) Connect() (err error) {
 
 func (c *Client) run() {
 	defer c.wg.Done()
-
 	level.Info(c.logger).Log("msg", "forward client running")
+
+	if c.cfg.HeartbeatInterval > 0 {
+		go c.heartbeat()
+	}
 	r := bufio.NewReaderSize(c.conn, ReaderBuffSize)
 	buf := make([]byte, 512)
 	var msg proto.Message
@@ -188,47 +200,94 @@ func (c *Client) run() {
 		}
 	}
 
+	if c.cfg.HeartbeatInterval > 0 {
+		c.done <- struct{}{}
+	}
 	c.mu.Lock()
 	c.shutdown = true
-	c.mu.Unlock()
 	_ = c.conn.Close()
+	c.conn = nil
+	c.mu.Unlock()
 	level.Info(c.logger).Log("msg", "forward client closed")
 
 	// Is reconnect
-	if c.cfg.ReconnectInterval != 0 {
-		go func() {
-			t := time.NewTimer(c.cfg.ReconnectInterval)
-			select {
-			case <-t.C:
-				_ = c.Start()
+	if !c.IsStopping() && c.cfg.ReconnectInterval > 0 {
+		c.wg.Add(1)
+		go c.reconnect()
+	}
+}
+
+func (c *Client) reconnect() {
+	level.Info(c.logger).Log("msg", "reconnect of forward client running")
+	t := time.NewTimer(c.cfg.ReconnectInterval)
+	defer func() {
+		t.Stop()
+		level.Info(c.logger).Log("msg", "reconnect of forward client stopped")
+		c.wg.Done()
+	}()
+
+	for {
+		select {
+		case <-t.C:
+			if c.IsStopping() {
+				return
 			}
-			t.Stop()
-		}()
+
+			if err := c.Start(); err == nil {
+				return
+			}
+			t.Reset(c.cfg.ReconnectInterval)
+			level.Warn(c.logger).Log("msg", fmt.Sprintf("reconnect of forward client in next %v", c.cfg.ReconnectInterval))
+		case <-c.done:
+			return
+		}
 	}
 }
 
 func (c *Client) heartbeat() {
-	defer c.wg.Done()
-
 	level.Info(c.logger).Log("msg", "heartbeat of forward client running")
 	t := time.NewTicker(c.cfg.HeartbeatInterval)
-	for range t.C {
-		if c.IsShutdown() {
-			t.Stop()
+	defer func() {
+		t.Stop()
+		level.Info(c.logger).Log("msg", "heartbeat of forward client stopped")
+	}()
+	for {
+		select {
+		case <-t.C:
+			if c.IsShutdown() || c.IsStopping() {
+				return
+			}
+
+			if _, err := c.conn.Write([]byte("ping")); err != nil {
+				level.Warn(c.logger).Log("msg", fmt.Sprintf("failed to heartbeat to %s", c.conn.RemoteAddr().String()))
+			}
+
+			if c.cfg.IdleTimeout != 0 {
+				_ = c.conn.SetDeadline(time.Now().Add(c.cfg.IdleTimeout))
+			}
+		case <-c.done:
 			return
-		}
-
-		if _, err := c.conn.Write([]byte("ping")); err != nil {
-			level.Warn(c.logger).Log("msg", fmt.Sprintf("failed to heartbeat to %s", c.conn.RemoteAddr().String()))
-		}
-
-		if c.cfg.IdleTimeout != 0 {
-			_ = c.conn.SetDeadline(time.Now().Add(c.cfg.IdleTimeout))
 		}
 	}
 }
 
+func (c *Client) reset() {
+	c.mu.Lock()
+ClearDone:
+	for {
+		select {
+		case <-c.done:
+		default:
+			break ClearDone
+		}
+	}
+	c.stopping = false
+	c.shutdown = false
+	c.mu.Unlock()
+}
+
 func (c *Client) Start() error {
+	c.reset()
 	if err := c.Connect(); err != nil {
 		return err
 	}
@@ -243,20 +302,23 @@ func (c *Client) Start() error {
 
 	c.wg.Add(1)
 	go c.run()
-
-	if c.cfg.HeartbeatInterval > 0 {
-		c.wg.Add(1)
-		go c.heartbeat()
-	}
 	return nil
 }
 
 // Stop implements Client
 func (c *Client) Stop() {
-	c.cfg.ReconnectInterval = 0
+	c.mu.Lock()
+	if c.stopping {
+		c.mu.Unlock()
+		return
+	}
+
+	c.stopping = true
 	if c.conn != nil {
 		_ = c.conn.Close()
 	}
+	c.mu.Unlock()
+	c.done <- struct{}{}
 	c.wg.Wait()
 }
 

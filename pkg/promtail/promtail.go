@@ -70,10 +70,10 @@ func New(cfg config.Config, dryRun bool, opts ...Option) (*Promtail, error) {
 
 	clientConfigs := make([]interface{}, 0)
 	for _, cfg := range cfg.ClientConfigs {
-		clientConfigs = append(clientConfigs, &cfg)
+		clientConfigs = append(clientConfigs, cfg)
 	}
 	if cfg.ForwardConfig.ForwardEnable {
-		clientConfigs = append(clientConfigs, &cfg.ForwardConfig)
+		clientConfigs = append(clientConfigs, cfg.ForwardConfig)
 	}
 
 	var err error
