@@ -72,7 +72,7 @@ func New(cfg config.Config, dryRun bool, opts ...Option) (*Promtail, error) {
 	for _, cfg := range cfg.ClientConfigs {
 		clientConfigs = append(clientConfigs, &cfg)
 	}
-	if cfg.ForwardConfig.ForwardListenPort > 0 {
+	if cfg.ForwardConfig.ForwardEnable {
 		clientConfigs = append(clientConfigs, &cfg.ForwardConfig)
 	}
 

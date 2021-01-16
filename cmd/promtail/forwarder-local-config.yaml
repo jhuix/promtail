@@ -9,6 +9,7 @@ positions:
 #  - url: http://localhost:3100/loki/api/v1/push
 
 forwarder:
+  enable: true
   listen_port: 9081
 #  tls_config:
 #    cert_file: /tmp/promtail/forward.crt

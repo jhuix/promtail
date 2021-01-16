@@ -8,6 +8,9 @@ positions:
 clients:
   - url: http://loki:3100/loki/api/v1/push
 
+forwarder:
+  enable: false
+
 scrape_configs:
 - job_name: system
   static_configs:

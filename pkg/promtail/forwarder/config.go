@@ -6,6 +6,7 @@ import (
 )
 
 type ServerConfig struct {
+	ForwardEnable          bool          `yaml:"enable"`
 	ForwardListenAddress   string        `yaml:"listen_address"`
 	ForwardListenPort      int           `yaml:"listen_port"`
 	ForwardConnLimit       int           `yaml:"listen_conn_limit"`
