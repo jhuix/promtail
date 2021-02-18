@@ -2,10 +2,13 @@
 
 # Promtail: reserve forward promtail for loki
 
-`promtail` is the agent based on [loki promtail](https://github.com/grafana/loki.git) with reserve forward server and client, responsible for gathering logs and sending them to Loki.
+The `reserve forward promtail` is the agent based on [loki promtail](https://github.com/grafana/loki.git) with reserve forward server and client, responsible for gathering logs and sending them to Loki.
 
+## Diagram
 
-### Building from source
+<p align="center"><img src="docs/sources/forward-promtail.png" alt="Promtail Logo"></p>
+
+## Building from source
 
 To build Promtail on non-Linux platforms, use the following command:
 
