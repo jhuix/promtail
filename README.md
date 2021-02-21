@@ -4,7 +4,7 @@
 
 The `reserve forward promtail` is the agent based on [loki promtail](https://github.com/grafana/loki.git) with reserve forward server and client, responsible for gathering logs and sending them to Loki.
 
-## Diagram
+## Diagram (1 x N)
 
 <p align="center"><img src="docs/sources/forward-promtail.png" alt="Promtail Logo"></p>
 
